@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "surquest-fastapi-utils"
+version = "0.0.1rc7"
+description = "This project provides collection of utilities for FastAPI framework as: Catcher, Middleware, etc."
+authors = [
+    {name= "Michal Švarc", email= "michal.svarc@surquest.com"}
+]
+readme = "README.md"
+dependencies = [
+    "fastapi >= 0.91.0",
+    "surquest-GCP-logger >= 0.1.0",
+    "surquest-fastapi-schemas >= 0.0.1rc1"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.2.1",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.20.0",
+    "starlette>=0.24.0"
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/surquest/python-fastapi-utils"
+"Bug Tracker" = "https://github.com/surquest/python-fastapi-utils/issues"
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+"scripts" = "surquest"
+
+[tool.hatch.build.targets.sdist.sources]
+"src" = ""
+"scripts" = "surquest"

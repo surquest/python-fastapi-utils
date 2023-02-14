@@ -1,0 +1,62 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11"]  # ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8
+        if [ -f pyproject.toml ]; then pip install . ; fi         # install package + dependencies
+        if [ -f pyproject.toml ]; then pip install .[test] ; fi   # install test dependencies
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      id: test
+      run: |
+        echo ${{ secrets.GCP_CREDENTIALS }} | base64 --decode > /tmp/gcp-credentials.json
+        export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-credentials.json
+        cd test                                                       # go to test directory
+        pytest > test.coverage.log                                    # run tests and save output into file
+        SCORE=$(awk '$1 == "TOTAL" {print $NF+0}' test.coverage.log)  # extract coverage score from file
+        echo "COVERAGE=$SCORE" >> $GITHUB_OUTPUT                      # save coverage score into output variable
+        cat test.coverage.log                                         # print test coverage log
+
+    - name: Publish coverage badge
+      uses: schneegans/dynamic-badges-action@v1.6.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}                              # GIST_SECRET is a GitHub personal access token with scope "gist".
+        gistID: ${{ secrets.GIST_ID }}                                # https://gist.github.com/surquest/6e25c317000917840152a5e702e71963
+        filename: "${{ github.event.repository.name }}.json"          # Name of the file to store the badge in
+        label: coverage
+        message: ${{ steps.test.outputs.COVERAGE }}
+        minColorRange: 75
+        maxColorRange: 90
+        valColorRange: ${{ steps.test.outputs.COVERAGE }}
