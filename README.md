@@ -1,5 +1,6 @@
 ![GitHub](https://img.shields.io/github/license/surquest/python-fastapi-utils?style=flat-square)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/surquest-fastapi-utils?style=flat-square)
+![PyPI](https://img.shields.io/pypi/v/surquest-fastapi-utils)
 
 # Introduction
 
