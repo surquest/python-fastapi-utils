@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "surquest-fastapi-utils"
-version = "0.0.1rc8"
+version = "0.0.1rc9"
 description = "This project provides collection of utilities for FastAPI framework as: Catcher, Middleware, etc."
 authors = [
     {name= "Michal Švarc", email= "michal.svarc@surquest.com"}
@@ -13,7 +13,7 @@ readme = "README.md"
 dependencies = [
     "fastapi >= 0.91.0",
     "surquest-GCP-logger >= 0.1.0",
-    "surquest-fastapi-schemas >= 0.0.1rc1"
+    "surquest-fastapi-schemas >= 0.0.1rc8"
 ]
 
 [project.optional-dependencies]

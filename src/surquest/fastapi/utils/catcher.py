@@ -1,18 +1,10 @@
 # import external modules
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from traceback import format_exc
 
-# import internal modules
-from surquest.fastapi.schemas.responses import (
-    ResponseSuccess,
-    ResponseWarning,
-    ResponseError,
-    Message,
-    InfoError
-)
+from surquest.fastapi.schemas.responses import Response, Message
 from surquest.GCP.logger import Logger
 
 
@@ -70,9 +62,9 @@ class Catcher(object):
             request=request, errors=message.dict(exclude_none=True), body=body
         )
 
-        return JSONResponse(
-            ResponseError(info=InfoError(errors=[message])).dict(exclude_none=True),
+        return Response.set(
             status_code=500,
+            errors=[message]
         )
 
     @classmethod
@@ -93,9 +85,9 @@ class Catcher(object):
 
         cls.log_error(request=request, errors=errors, body=exc.body)
 
-        return JSONResponse(
-            ResponseError(info=InfoError(errors=errors)).dict(exclude_none=True),
+        return Response.set(
             status_code=422,
+            errors=errors
         )
 
     @classmethod
@@ -122,9 +114,9 @@ class Catcher(object):
             request=request, errors=message.dict(exclude_none=True), body=body
         )
 
-        return JSONResponse(
-            ResponseError(info=InfoError(errors=[message])).dict(exclude_none=True),
+        return Response.set(
             status_code=404,
+            errors=[message]
         )
 
     @classmethod
