@@ -42,6 +42,13 @@ class HTTPContext(object):
             body =  await request.body()
             body = body.decode('utf-8')
 
+        # evaluate request body to be able to log it in case of error
+        # IMPORTANT: does not work well for streaming requests
+        await HTTPContext.dispatch_request_body(
+            request=request,
+            body=await request.body()
+        )
+
         http_request = {
             'requestMethod': request.method,
             'requestUrl': request.url,
@@ -84,3 +91,12 @@ class HTTPContext(object):
         if span_id is None:
             span_id = str(random.getrandbits(64))
         return trace_id, span_id, flags
+
+    @staticmethod
+    async def dispatch_request_body(request: Request, body: bytes):
+        """Method set request body"""
+
+        async def receive():
+            return {"type": "http.request", "body": body}
+
+        request._receive = receive
