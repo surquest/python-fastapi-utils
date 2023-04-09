@@ -8,8 +8,9 @@ This project provides collection of utilities for smooth integration of FastAPI 
 
 The key features of this project are:
 
-* Logging to Stackdriver
-* Tracing to Stackdriver
+* Logging to Cloud Logging
+* Tracing to Cloud Logging
+* Error Reporting via Cloud Logging
 * Custom middleware for configuration of logging
 * Custom exception handlers treating HTTP and validation exceptions
 * Custom routes for documentation and favicon

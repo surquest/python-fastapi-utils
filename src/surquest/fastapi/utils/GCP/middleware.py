@@ -35,7 +35,7 @@ class BasicMiddleware(BaseHTTPMiddleware):
 
         except BaseException as exc:
 
-            return Catcher.catch_internal_error(request, exc)
+            return await Catcher.catch_internal_error(request, exc)
 
 class LoggingMiddleware(BaseHTTPMiddleware):
 
@@ -60,7 +60,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         except BaseException as exc:
 
-            return Catcher.catch_internal_error(request, exc)
+            return await Catcher.catch_internal_error(request, exc)
 
 
 class DBMiddleware(BaseHTTPMiddleware):
@@ -85,7 +85,7 @@ class DBMiddleware(BaseHTTPMiddleware):
 
         except BaseException as exc:
 
-            return Catcher.catch_internal_error(request, exc)
+            return await Catcher.catch_internal_error(request, exc)
 
         finally:
 

@@ -1,9 +1,14 @@
+import os
 import json
 import logging
 import datetime as dt
 import google.cloud.logging
 from surquest.fastapi.utils.GCP.http_context import (
     HTTPContext
+)
+
+from .http_context import (
+    HTTP_REQUEST_CONTEXT
 )
 
 __all__ = ["JSONFormatter"]
@@ -21,9 +26,11 @@ class JSONFormatter(logging.Formatter):
         "process", "processName", "message", "asctime"
     }
 
+    GCP_LOG_TYPE = "type.googleapis.com/type.googleapis.com/google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent"
+
     def __init__(
             self,
-            fields: dict = {
+            fields = {
                 "severity": "levelname",
                 "message": "message",
                 "ctx": "ctx",
@@ -94,10 +101,90 @@ class JSONFormatter(logging.Formatter):
             "line": record.lineno,
         }
 
-        #
-        message_dict = self.format_log_entry(record)
+        # convert log record to dictionary compatible with GCP LogRecord format
+        log = self.format_log_entry(record)
 
-        return json.dumps(message_dict, default=str)
+        # if log record is an error add @type attribute to comply with GCP Error Reporting format
+        if record.levelno >= logging.ERROR:
+
+            log["@type"] = self.GCP_LOG_TYPE
+            log["message"] = self.format_stack_trace(
+                message=log["message"],
+                traceback=log["ctx"]["traceback"]
+            )
+            log["serviceContext"] = self.get_service_context()
+            log["context"] = {
+                "httpRequest": self.get_http_request_context(),
+                "reportLocation": self.get_report_location(record),
+                "user": self.get_user()
+            }
+
+        return json.dumps(log, default=str)
+
+    @staticmethod
+    def get_user():
+        """Methods returns user context in case of running the service on GCP
+        behind Google Identity Aware Proxy
+        """
+
+        email = "unknown"
+        request = HTTP_REQUEST_CONTEXT.get()
+
+        if isinstance(request.get("headers"), dict):
+            email = request.get("headers").get(
+                "x-goog-authenticated-user-email",
+                email
+            )
+
+        return email
+
+    @staticmethod
+    def get_service_context():
+        """Methods returns service context in case of running the service on GCP"""
+
+        return {
+            "service": os.getenv("K_SERVICE", "LOCAL"),
+            "version": os.getenv("K_REVISION", "-")
+        }
+
+    @staticmethod
+    def get_http_request_context():
+        """Methods returns http request context in case of running the service on GCP"""
+
+        request = HTTP_REQUEST_CONTEXT.get()
+
+        return {
+            "method": request.get("requestMethod"),
+            "url": str(request.get("requestUrl")),
+            "userAgent": request.get("userAgent"),
+            "referrer": request.get("referrer"),
+            "responseStatusCode": 500,
+            "remoteIp": request.get("remoteIp")
+        }
+
+    @staticmethod
+    def format_stack_trace(message, traceback: list) -> str:
+        """Method to format traceback to comply with GCP Error Reporting format"""
+
+        stack_trace = [F"{message}:"]
+        for i in traceback:
+            if "^^" in i:
+                # stack_trace.append("")
+                pass
+            else:
+                stack_trace.append(i)
+
+        return "\n".join(stack_trace)
+
+    @staticmethod
+    def get_report_location(record):
+        """Methods returns location within the application code that reported the error"""
+
+        return {
+            "filePath": record.pathname,
+            "lineNumber": record.lineno,
+            "functionName": record.funcName
+        }
 
     @staticmethod
     def get_extra(record):

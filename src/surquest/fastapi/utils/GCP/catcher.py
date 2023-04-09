@@ -3,7 +3,7 @@ import os
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from traceback import format_exc
+import traceback
 
 from surquest.fastapi.schemas.responses import Response, Message
 
@@ -33,19 +33,22 @@ class Catcher:
     OUPS = "Oups, something went wrong"
 
     @classmethod
-    def catch_internal_error(
+    async def catch_internal_error(
             cls,
             request: Request,
             exc: BaseException
     ):
 
-        ctx = {"trace": CLOUD_TRACE_CONTEXT.get()}
+        tb = traceback.format_exc(chain=False).split("\n")
 
-        # if run in production return only the error message + trace
-        if os.getenv('ENVIRONMENT', 'dev').lower() not in ['prod', 'production']:
+        ctx = {
+            "trace": CLOUD_TRACE_CONTEXT.get()
+        }
 
-            # if is not production return the full traceback
-            ctx["traceback"] =  str(format_exc()).split("\n")
+        if os.getenv("ENV", "DEV").upper() not in ["PROD", "PRODUCTION"] or \
+            os.getenv("ENVIRONMENT", "DEV").upper() not in ["PROD", "PRODUCTION"]:
+
+            ctx["traceback"] = tb
 
         message = Message(
             msg=F"{str(exc)} ({type(exc).__name__})",
@@ -57,7 +60,8 @@ class Catcher:
             F"{str(exc)} ({type(exc).__name__})",
             extra={
                 "error": message.dict(exclude_none=True),
-                "request": HTTP_REQUEST_CONTEXT.get()
+                "request": HTTP_REQUEST_CONTEXT.get(),
+                "traceback": tb
             }
         )
 
@@ -67,7 +71,7 @@ class Catcher:
         )
 
     @classmethod
-    def catch_validation_error(
+    async def catch_validation_error(
             cls,
             request: Request,
             exc: RequestValidationError
@@ -98,7 +102,7 @@ class Catcher:
         )
 
     @classmethod
-    def catch_http_exception(
+    async def catch_http_exception(
             cls,
             request: Request,
             exc: StarletteHTTPException
