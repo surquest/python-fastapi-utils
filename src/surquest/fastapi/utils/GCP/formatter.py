@@ -107,10 +107,15 @@ class JSONFormatter(logging.Formatter):
         # if log record is an error add @type attribute to comply with GCP Error Reporting format
         if record.levelno >= logging.ERROR:
 
+            tb = [] # empty traceback
+            if "ctx" in log and "traceback" in log["ctx"]:
+                # get traceback from log record if present
+                tb = log["ctx"]["traceback"]
+
             log["@type"] = self.GCP_LOG_TYPE
             log["message"] = self.format_stack_trace(
                 message=log["message"],
-                traceback=log["ctx"]["traceback"]
+                traceback=tb
             )
             log["serviceContext"] = self.get_service_context()
             log["context"] = {

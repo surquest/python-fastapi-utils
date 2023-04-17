@@ -21,11 +21,11 @@ __all__ = [
 
 
 async def catch_validation_exceptions(request: Request, exc):
-    return Catcher.catch_validation_error(request, exc)
+    return await Catcher.catch_validation_error(request, exc)
 
 
 async def catch_http_exceptions(request: Request, exc):
-    return Catcher.catch_http_exception(request, exc)
+    return await Catcher.catch_http_exception(request, exc)
 
 
 class Catcher:
