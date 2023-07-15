@@ -124,6 +124,6 @@ class Catcher:
         )
 
         return Response.set(
-            status_code=404,
+            status_code=getattr(exc, "status_code", 404),
             errors=[message]
         )
