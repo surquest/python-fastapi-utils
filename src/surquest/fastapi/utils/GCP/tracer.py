@@ -18,13 +18,21 @@ DEFAULT_TRACER_NAME = os.getenv('APP_NAME', "APILogger")
 
 tracer_provider = TracerProvider(sampler=ALWAYS_ON)  # always trace
 trace.set_tracer_provider(tracer_provider)
-cloud_trace_exporter = CloudTraceSpanExporter()
-tracer_provider.add_span_processor(
-    # BatchSpanProcessor buffers spans and sends them in batches in a
-    # background thread. The default parameters are sensible, but can be
-    # tweaked to optimize your performance
-    BatchSpanProcessor(cloud_trace_exporter)
-)
+# cloud_trace_exporter = CloudTraceSpanExporter()
+try:
+    cloud_trace_exporter = CloudTraceSpanExporter()
+except Exception as e:
+    print("CloudTraceSpanExporter not initialized")
+    print(e)
+    cloud_trace_exporter = None
+
+if cloud_trace_exporter is not None:    
+    tracer_provider.add_span_processor(
+        # BatchSpanProcessor buffers spans and sends them in batches in a
+        # background thread. The default parameters are sensible, but can be
+        # tweaked to optimize your performance
+        BatchSpanProcessor(cloud_trace_exporter)
+    )
 
 class Tracer:
 
