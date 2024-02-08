@@ -29,6 +29,9 @@ test = [
 "Homepage" = "https://github.com/surquest/python-fastapi-utils"
 "Bug Tracker" = "https://github.com/surquest/python-fastapi-utils/issues"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/surquest"]
+
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""
 "scripts" = "surquest"
