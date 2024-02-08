@@ -58,7 +58,7 @@ class HTTPContext(object):
             "headers": dict(request.headers),
             "cookies": dict(request.cookies),
             'requestSize': sys.getsizeof(request),
-            'remoteIp': request.client.host,
+            'remoteIp': request.client.host if request.client is not None else None,
             'protocol': request.url.scheme,
         }
 
